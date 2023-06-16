@@ -43,18 +43,10 @@ app.get('/api/persons/:id', (request, response, next) => {
         .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body
 
     console.log("body", body)
-
-    if (body.name === undefined) {
-      return response.status(400).json({ error: 'name is in fact missing' })
-    }
-
-    if (body.number === undefined) {
-        return response.status(400).json({ error: 'number is in fact missing' })
-      }
   
     const person = new Person({
       name: body.name,
@@ -65,6 +57,7 @@ app.post('/api/persons', (request, response) => {
         console.log('saved to DB')
         response.json(savedPerson)
     })
+    .catch(error => next(error))
 
 })
 
@@ -105,14 +98,16 @@ const errorHandler = (error, request, response, next) => {
   
     if (error.name === 'CastError') {
       return response.status(400).send({ error: 'malformatted id' })
-    } 
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({error: error.message})
+    }
   
     next(error)
   }
 
 app.use(errorHandler)
 
-const PORT = process.env.PORT
+const PORT = 3000
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
 })
